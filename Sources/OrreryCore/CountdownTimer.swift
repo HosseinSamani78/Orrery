@@ -10,14 +10,34 @@ public final class CountdownTimer: TimerModel {
     public private(set) var startedAt: Date?
 
     // Set while running and paused; only cleared by reset(), so non-nil whenever the run is live.
-    private var endsAt: Date?
-    private var pausedAt: Date?
+    private(set) var endsAt: Date?
+    private(set) var pausedAt: Date?
 
     public init(id: UUID = UUID(), name: String = "Countdown", duration: TimeInterval) {
         precondition(duration > 0, "A countdown needs a positive duration")
         self.id = id
         self.name = name
         self.duration = duration
+    }
+
+    /// Rebuilds a timer from a persisted snapshot (#14).
+    public init(
+        id: UUID,
+        name: String,
+        duration: TimeInterval,
+        status: TimerStatus,
+        startedAt: Date?,
+        endsAt: Date?,
+        pausedAt: Date?
+    ) {
+        precondition(duration > 0, "A countdown needs a positive duration")
+        self.id = id
+        self.name = name
+        self.duration = duration
+        self.status = status
+        self.startedAt = startedAt
+        self.endsAt = endsAt
+        self.pausedAt = pausedAt
     }
 
     /// Time left at `now`, frozen while paused. Pauses shift the end anchor, so wall-clock time
