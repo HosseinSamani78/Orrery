@@ -94,6 +94,7 @@ public final class TimerRecord {
             id: timerID,
             name: name,
             duration: duration,
+            type: type,
             status: status,
             startedAt: startedAt,
             endsAt: endsAt,

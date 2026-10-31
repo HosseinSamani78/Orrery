@@ -14,6 +14,17 @@ public final class TimerStore {
         timers.append(timer)
     }
 
+    /// Starts and adds a quick-start countdown in one call.
+    @discardableResult
+    public func quickStart(
+        at now: Date,
+        duration: TimeInterval = QuickStartTimer.defaultDuration
+    ) -> CountdownTimer {
+        let timer = QuickStartTimer.start(duration: duration, at: now)
+        add(timer)
+        return timer
+    }
+
     public func timer(id: UUID) -> (any TimerModel)? {
         timers.first { $0.id == id }
     }

@@ -4,7 +4,7 @@ public final class CountdownTimer: TimerModel {
     public let id: UUID
     public var name: String
     public let duration: TimeInterval
-    public let type: TimerType = .countdown
+    public let type: TimerType
 
     public private(set) var status: TimerStatus = .idle
     public private(set) var startedAt: Date?
@@ -13,11 +13,17 @@ public final class CountdownTimer: TimerModel {
     private(set) var endsAt: Date?
     private(set) var pausedAt: Date?
 
-    public init(id: UUID = UUID(), name: String = "Countdown", duration: TimeInterval) {
+    public init(
+        id: UUID = UUID(),
+        name: String = "Countdown",
+        duration: TimeInterval,
+        type: TimerType = .countdown
+    ) {
         precondition(duration > 0, "A countdown needs a positive duration")
         self.id = id
         self.name = name
         self.duration = duration
+        self.type = type
     }
 
     /// Rebuilds a timer from a persisted snapshot (#14).
@@ -25,6 +31,7 @@ public final class CountdownTimer: TimerModel {
         id: UUID,
         name: String,
         duration: TimeInterval,
+        type: TimerType = .countdown,
         status: TimerStatus,
         startedAt: Date?,
         endsAt: Date?,
@@ -34,6 +41,7 @@ public final class CountdownTimer: TimerModel {
         self.id = id
         self.name = name
         self.duration = duration
+        self.type = type
         self.status = status
         self.startedAt = startedAt
         self.endsAt = endsAt

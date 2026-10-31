@@ -6,6 +6,7 @@ public enum TimerStatus: String, Codable, Sendable {
 
 public enum TimerType: String, Codable, Sendable {
     case countdown
+    case quickStart
     case countUp
 }
 
