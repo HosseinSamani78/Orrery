@@ -8,6 +8,7 @@ public enum TimerType: String, Codable, Sendable {
     case countdown
     case quickStart
     case countUp
+    case pomodoro
 }
 
 /// Shared lifecycle for every timer type. Callers pass `now` explicitly so the state
@@ -24,6 +25,7 @@ public protocol TimerModel: AnyObject, Identifiable {
     func resume(at now: Date)
     func reset()
 
-    /// Resolves time-dependent transitions. Returns a History entry the one time the run completes.
-    func update(at now: Date) -> HistoryEntry?
+    /// Resolves time-dependent transitions, returning a History entry for each run that completed.
+    /// A plain timer returns zero or one entry; a phase-cycling timer can catch up on several.
+    func update(at now: Date) -> [HistoryEntry]
 }

@@ -71,8 +71,8 @@ final class CountUpTimerTests: XCTestCase {
         let timer = CountUpTimer()
         timer.start(at: t0)
 
-        XCTAssertNil(timer.update(at: later(60)))
-        XCTAssertNil(timer.update(at: later(86_400)))
+        XCTAssertTrue(timer.update(at: later(60)).isEmpty)
+        XCTAssertTrue(timer.update(at: later(86_400)).isEmpty)
         XCTAssertEqual(timer.status, .running)
     }
 }

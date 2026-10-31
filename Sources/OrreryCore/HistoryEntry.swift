@@ -10,6 +10,8 @@ public struct HistoryEntry: Codable, Equatable, Sendable, Identifiable {
     public let completedAt: Date
     public let plannedDuration: TimeInterval
     public let elapsed: TimeInterval
+    /// Label of the completed phase for phase-cycling timers (Pomodoro, interval); `nil` otherwise.
+    public let phase: String?
 
     public init(
         id: UUID = UUID(),
@@ -19,7 +21,8 @@ public struct HistoryEntry: Codable, Equatable, Sendable, Identifiable {
         startedAt: Date,
         completedAt: Date,
         plannedDuration: TimeInterval,
-        elapsed: TimeInterval
+        elapsed: TimeInterval,
+        phase: String? = nil
     ) {
         self.id = id
         self.timerID = timerID
@@ -29,5 +32,6 @@ public struct HistoryEntry: Codable, Equatable, Sendable, Identifiable {
         self.completedAt = completedAt
         self.plannedDuration = plannedDuration
         self.elapsed = elapsed
+        self.phase = phase
     }
 }

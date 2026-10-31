@@ -87,11 +87,11 @@ public final class CountdownTimer: TimerModel {
         pausedAt = nil
     }
 
-    public func update(at now: Date) -> HistoryEntry? {
-        guard status == .running, let endsAt, let startedAt, now >= endsAt else { return nil }
+    public func update(at now: Date) -> [HistoryEntry] {
+        guard status == .running, let endsAt, let startedAt, now >= endsAt else { return [] }
         status = .completed
         pausedAt = nil
-        return HistoryEntry(
+        return [HistoryEntry(
             timerID: id,
             timerName: name,
             timerType: type,
@@ -99,6 +99,6 @@ public final class CountdownTimer: TimerModel {
             completedAt: endsAt,
             plannedDuration: duration,
             elapsed: duration
-        )
+        )]
     }
 }

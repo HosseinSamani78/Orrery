@@ -42,7 +42,7 @@ final class CountdownTimerTests: XCTestCase {
         timer.pause(at: later(90))
         XCTAssertEqual(timer.status, .running)
 
-        XCTAssertNotNil(timer.update(at: later(90)))
+        XCTAssertEqual(timer.update(at: later(90)).count, 1)
         XCTAssertEqual(timer.status, .completed)
     }
 
@@ -53,7 +53,7 @@ final class CountdownTimerTests: XCTestCase {
 
         XCTAssertEqual(timer.status, .running)
         XCTAssertEqual(timer.remaining(at: later(60)), 0, accuracy: 0.001)
-        XCTAssertNotNil(timer.update(at: later(60)))
+        XCTAssertEqual(timer.update(at: later(60)).count, 1)
     }
 
     func testResumeWithoutPauseIsANoOp() {
@@ -84,7 +84,7 @@ final class CountdownTimerTests: XCTestCase {
     func testCompletedTimerStaysCompletedUntilReset() {
         let timer = CountdownTimer(duration: 60)
         timer.start(at: t0)
-        timer.update(at: later(60))
+        _ = timer.update(at: later(60))
 
         timer.start(at: later(120))
         XCTAssertEqual(timer.status, .completed)
@@ -104,10 +104,10 @@ final class CountdownTimerTests: XCTestCase {
         timer.pause(at: later(100))
         timer.resume(at: later(400))
 
-        XCTAssertNil(timer.update(at: later(599)))
+        XCTAssertTrue(timer.update(at: later(599)).isEmpty)
         XCTAssertEqual(timer.status, .running)
 
-        let entry = timer.update(at: later(600))
+        let entry = timer.update(at: later(600)).first
         XCTAssertEqual(entry?.timerID, timer.id)
         XCTAssertEqual(entry?.timerName, "Tea")
         XCTAssertEqual(entry?.timerType, .countdown)
@@ -116,12 +116,12 @@ final class CountdownTimerTests: XCTestCase {
         XCTAssertEqual(entry?.plannedDuration, 300)
         XCTAssertEqual(entry?.elapsed, 300)
 
-        XCTAssertNil(timer.update(at: later(700)), "a run records history exactly once")
+        XCTAssertTrue(timer.update(at: later(700)).isEmpty, "a run records history exactly once")
     }
 
     func testUpdateBeforeStartDoesNothing() {
         let timer = CountdownTimer(duration: 60)
-        XCTAssertNil(timer.update(at: later(600)))
+        XCTAssertTrue(timer.update(at: later(600)).isEmpty)
         XCTAssertEqual(timer.status, .idle)
     }
 }

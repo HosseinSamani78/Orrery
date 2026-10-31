@@ -36,9 +36,7 @@ public final class TimerStore {
     /// Drives every timer to `now`; appends a History entry for each run that just completed.
     public func update(at now: Date) {
         for timer in timers {
-            if let entry = timer.update(at: now) {
-                history.append(entry)
-            }
+            history.append(contentsOf: timer.update(at: now))
         }
     }
 }

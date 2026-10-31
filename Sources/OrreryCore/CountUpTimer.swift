@@ -52,7 +52,7 @@ public final class CountUpTimer: TimerModel {
     }
 
     /// A count-up run has no deadline, so it never completes on its own.
-    public func update(at now: Date) -> HistoryEntry? {
-        nil
+    public func update(at now: Date) -> [HistoryEntry] {
+        []
     }
 }
