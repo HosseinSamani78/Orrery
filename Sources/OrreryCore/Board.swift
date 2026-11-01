@@ -105,7 +105,7 @@ public final class TimerRecord {
 
 /// Owns the SwiftData container for Boards and their timers.
 public final class BoardStore {
-    private let context: ModelContext
+    let context: ModelContext
 
     public static var defaultStoreURL: URL {
         URL.applicationSupportDirectory.appending(path: "Orrery/Orrery.store")
@@ -118,14 +118,17 @@ public final class BoardStore {
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-        let container = try ModelContainer(for: Board.self, configurations: ModelConfiguration(url: url))
+        let container = try ModelContainer(
+            for: Board.self, Preset.self,
+            configurations: ModelConfiguration(url: url)
+        )
         context = ModelContext(container)
     }
 
     /// In-memory store, for tests and previews.
     public init(isStoredInMemoryOnly: Bool) throws {
         let container = try ModelContainer(
-            for: Board.self,
+            for: Board.self, Preset.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: isStoredInMemoryOnly)
         )
         context = ModelContext(container)
