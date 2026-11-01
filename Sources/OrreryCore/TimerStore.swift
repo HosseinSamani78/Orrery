@@ -39,4 +39,39 @@ public final class TimerStore {
             history.append(contentsOf: timer.update(at: now))
         }
     }
+
+    /// Applies a keyboard action to one timer, so shortcuts and menu items share one path.
+    /// `quickStart` adds a new timer and ignores `id`. Returns false when the timer is unknown
+    /// or the action does not apply (e.g. toggle on a completed timer).
+    @discardableResult
+    public func perform(_ action: TimerAction, on id: UUID, at now: Date) -> Bool {
+        if action == .quickStart {
+            quickStart(at: now)
+            return true
+        }
+        guard let timer = timer(id: id) else { return false }
+
+        switch action {
+        case .start:
+            timer.start(at: now)
+        case .pause:
+            timer.pause(at: now)
+        case .resume:
+            timer.resume(at: now)
+        case .toggle:
+            switch timer.status {
+            case .idle: timer.start(at: now)
+            case .running: timer.pause(at: now)
+            case .paused: timer.resume(at: now)
+            case .completed: return false
+            }
+        case .reset:
+            timer.reset()
+        case .delete:
+            delete(id: id)
+        case .quickStart:
+            break
+        }
+        return true
+    }
 }
