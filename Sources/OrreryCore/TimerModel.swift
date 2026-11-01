@@ -10,6 +10,7 @@ public enum TimerType: String, Codable, Sendable {
     case countUp
     case pomodoro
     case interval
+    case stopwatch
 }
 
 /// Shared lifecycle for every timer type. Callers pass `now` explicitly so the state
