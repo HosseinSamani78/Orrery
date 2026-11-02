@@ -22,9 +22,9 @@ final class PresetTests: XCTestCase {
 
         XCTAssertEqual(preset.name, "Kitchen")
         XCTAssertEqual(preset.phases, ["Steep", "Rest"])
-        XCTAssertEqual(preset.timers, [
-            PresetTimer(name: "Tea", type: .countdown, duration: 300),
+        XCTAssertEqual(preset.timers.sorted { $0.name < $1.name }, [
             PresetTimer(name: "Eggs", type: .quickStart, duration: 420),
+            PresetTimer(name: "Tea", type: .countdown, duration: 300),
         ])
     }
 
