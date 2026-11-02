@@ -34,10 +34,14 @@ public final class TimerStore {
     }
 
     /// Drives every timer to `now`; appends a History entry for each run that just completed.
-    public func update(at now: Date) {
+    @discardableResult
+    public func update(at now: Date) -> [HistoryEntry] {
+        var completed: [HistoryEntry] = []
         for timer in timers {
-            history.append(contentsOf: timer.update(at: now))
+            completed.append(contentsOf: timer.update(at: now))
         }
+        history.append(contentsOf: completed)
+        return completed
     }
 
     /// Applies a keyboard action to one timer, so shortcuts and menu items share one path.

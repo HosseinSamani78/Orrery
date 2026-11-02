@@ -10,6 +10,7 @@ let package = Package(
     targets: [
         .target(name: "OrreryCore"),
         .executableTarget(name: "OrreryApp", dependencies: ["OrreryCore"]),
+        .target(name: "OrreryWidget", dependencies: ["OrreryCore"]),
         .testTarget(name: "OrreryCoreTests", dependencies: ["OrreryCore"]),
     ]
 )

@@ -2,6 +2,16 @@ import Foundation
 
 public enum TimerStatus: String, Codable, Sendable {
     case idle, running, paused, completed
+
+    /// Human-readable state, shared by the app and the widget.
+    public var label: String {
+        switch self {
+        case .idle: "Idle"
+        case .running: "Running"
+        case .paused: "Paused"
+        case .completed: "Done"
+        }
+    }
 }
 
 public enum TimerType: String, Codable, Sendable {
@@ -11,6 +21,18 @@ public enum TimerType: String, Codable, Sendable {
     case pomodoro
     case interval
     case stopwatch
+
+    /// SF Symbol for the timer type, shared by the app and the widget.
+    public var symbolName: String {
+        switch self {
+        case .countdown: "hourglass"
+        case .quickStart: "bolt"
+        case .countUp: "arrow.up"
+        case .pomodoro: "circle.dotted"
+        case .interval: "repeat"
+        case .stopwatch: "stopwatch"
+        }
+    }
 }
 
 /// Shared lifecycle for every timer type. Callers pass `now` explicitly so the state

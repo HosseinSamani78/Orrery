@@ -38,6 +38,11 @@ public final class Board {
         return record
     }
 
+    /// Drops the snapshot for a timer that no longer exists on the board.
+    public func removeRecord(id: UUID) {
+        timers.removeAll { $0.timerID == id }
+    }
+
     /// Timers rebuilt from their snapshots.
     public var liveTimers: [CountdownTimer] {
         timers.map(\.timer)
@@ -111,9 +116,9 @@ public final class BoardStore {
         URL.applicationSupportDirectory.appending(path: "Orrery/Orrery.store")
     }
 
-    /// `storeURL: nil` uses the app's default store file.
+    /// `storeURL: nil` uses the App Group store shared with the widget.
     public init(storeURL: URL? = nil) throws {
-        let url = storeURL ?? Self.defaultStoreURL
+        let url = storeURL ?? SharedStore.storeURL
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true

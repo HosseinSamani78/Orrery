@@ -26,25 +26,9 @@ private func clockText(_ seconds: TimeInterval, roundingUp: Bool = false) -> Str
 }
 
 extension TimerModel {
-    var statusLabel: String {
-        switch status {
-        case .idle: "Idle"
-        case .running: "Running"
-        case .paused: "Paused"
-        case .completed: "Done"
-        }
-    }
+    var statusLabel: String { status.label }
 
-    var symbolName: String {
-        switch type {
-        case .countdown: "hourglass"
-        case .quickStart: "bolt"
-        case .countUp: "arrow.up"
-        case .pomodoro: "circle.dotted"
-        case .interval: "repeat"
-        case .stopwatch: "stopwatch"
-        }
-    }
+    var symbolName: String { type.symbolName }
 }
 
 extension TimerStatus {
