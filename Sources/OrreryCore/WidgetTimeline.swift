@@ -6,7 +6,7 @@ public struct WidgetTimer: Equatable, Sendable, Identifiable {
     public let name: String
     public let type: TimerType
     public let status: TimerStatus
-    /// Deadline of a running countdown-style timer; `nil` for open-ended, idle or completed timers.
+    /// Deadline of a running countdown-style timer; `nil` for open-ended or idle timers.
     public let endsAt: Date?
     public let startedAt: Date?
 

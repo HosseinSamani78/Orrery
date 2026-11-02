@@ -34,8 +34,10 @@ struct OrreryTimelineProvider: TimelineProvider {
     }
 
     private func loadTimers() -> [WidgetTimer] {
-        guard let store = try? BoardStore(), let boards = try? store.boards() else { return [] }
-        return boards.flatMap(\.timers).map(WidgetTimer.init)
+        guard let store = try? BoardStore(),
+              let board = try? store.boards().first else { return [] }
+        // The app owns one board; showing others would surface timers the app never updates.
+        return board.timers.map(WidgetTimer.init)
     }
 }
 

@@ -22,6 +22,7 @@ public enum StoreChangeSignal {
     /// Keeps the Darwin observer alive; cancelling (or releasing it) stops delivery.
     public final class Observation: @unchecked Sendable {
         private let handler: @Sendable () -> Void
+        private let lock = NSLock()
         private var isObserving = true
 
         public init(handler: @escaping @Sendable () -> Void) {
@@ -44,6 +45,8 @@ public enum StoreChangeSignal {
         }
 
         public func cancel() {
+            lock.lock()
+            defer { lock.unlock() }
             guard isObserving else { return }
             isObserving = false
             CFNotificationCenterRemoveObserver(
