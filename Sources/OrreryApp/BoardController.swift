@@ -9,15 +9,24 @@ import WidgetKit
 @MainActor
 final class BoardController: ObservableObject {
     let store: TimerStore
+    let pro: ProStore
     private let boardStore: BoardStore?
     @Published private(set) var focus: TimerFocus
     @Published private(set) var now: Date = .now
+    /// Non-nil while the paywall is up, either from a blocked action or the menu item.
+    @Published var upgradeReason: UpgradeReason?
     private var changeObserver: StoreChangeSignal.Observation?
     private var openObserver: NSObjectProtocol?
+    private var tierObserver: AnyCancellable?
     private var sharePicker: NSSharingServicePicker?
 
-    init(store: TimerStore = TimerStore(), boardStore: BoardStore? = try? BoardStore()) {
+    init(
+        store: TimerStore = TimerStore(),
+        boardStore: BoardStore? = try? BoardStore(),
+        pro: ProStore = ProStore()
+    ) {
         self.store = store
+        self.pro = pro
         self.boardStore = boardStore
         // Restore the shared store so the app opens with what the widget was showing.
         if let boardStore, let board = try? boardStore.currentBoard() {
@@ -29,6 +38,11 @@ final class BoardController: ObservableObject {
         self.changeObserver = StoreChangeSignal.observe { [weak self] in
             Task { @MainActor in self?.reloadFromStore() }
         }
+        self.tierObserver = pro.$tier.dropFirst().sink { _ in
+            // Widgets are gated on the mirrored entitlement, so unlock them right away.
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        Task { await pro.load() }
         self.openObserver = NotificationCenter.default.addObserver(
             forName: .openBoardDocument,
             object: nil,
@@ -62,6 +76,12 @@ final class BoardController: ObservableObject {
     @discardableResult
     func perform(_ action: TimerAction) -> Bool {
         if action == .quickStart {
+            // Completed timers no longer run, so only live ones count against the free ceiling.
+            let active = timers.filter { $0.status != .completed }.count
+            guard pro.policy.canAddTimer(existing: active) else {
+                upgradeReason = .timers
+                return false
+            }
             let timer = store.quickStart(at: now)
             focus.select(timer.id)
             persist()
@@ -93,6 +113,11 @@ final class BoardController: ObservableObject {
     /// board and makes it the one on screen.
     func importBoard(from url: URL) {
         guard let boardStore else { return }
+        let existing = (try? boardStore.boards().count) ?? 0
+        guard pro.policy.canAddBoard(existing: existing) else {
+            upgradeReason = .boards
+            return
+        }
         let imported: Board?
         if url.scheme == BoardDocument.shareScheme {
             imported = (try? BoardDocument(shareURL: url))

@@ -54,6 +54,9 @@ struct BoardView: View {
             controller.perform(.toggle)
             return .handled
         }
+        .sheet(item: $controller.upgradeReason) { reason in
+            UpgradeView(pro: controller.pro, reason: reason)
+        }
     }
 }
 

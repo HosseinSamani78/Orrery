@@ -65,7 +65,7 @@ struct MenuBarLabel: View {
 /// Menu commands share the core's default shortcuts, so the window, the menu bar and the
 /// keyboard all drive timers through the same `TimerAction` path.
 struct TimerCommands: Commands {
-    let controller: BoardController
+    @ObservedObject var controller: BoardController
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -89,6 +89,11 @@ struct TimerCommands: Commands {
             Button("Show QR Code") {
                 openWindow(id: BoardQRWindow.id)
                 NSApp.activate(ignoringOtherApps: true)
+            }
+        }
+        CommandGroup(after: .appInfo) {
+            if controller.pro.tier == .free {
+                Button("Unlock Orrery Pro…") { controller.upgradeReason = .manual }
             }
         }
     }

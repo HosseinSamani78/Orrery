@@ -44,11 +44,17 @@ struct MenuBarView: View {
                 NSApp.activate(ignoringOtherApps: true)
             }
             .keyboardShortcut("o")
+            if controller.pro.tier == .free {
+                Button("Unlock Orrery Pro…") { controller.upgradeReason = .manual }
+            }
             Divider()
             Button("Quit Orrery") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
         }
         .padding(12)
         .frame(width: 280)
+        .sheet(item: $controller.upgradeReason) { reason in
+            UpgradeView(pro: controller.pro, reason: reason)
+        }
     }
 }

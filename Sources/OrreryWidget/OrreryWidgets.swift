@@ -45,6 +45,14 @@ struct OrreryWidgetView: View {
     let entry: WidgetTimelineEntry
 
     var body: some View {
+        if SharedStore.isPro {
+            timers
+        } else {
+            locked
+        }
+    }
+
+    private var timers: some View {
         VStack(alignment: .leading, spacing: 6) {
             if entry.timers.isEmpty {
                 Label("No timers", systemImage: "timer")
@@ -71,6 +79,19 @@ struct OrreryWidgetView: View {
                     .font(.callout)
                 }
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .containerBackground(.fill.tertiary, for: .widget)
+    }
+
+    /// Free tier: the widget is a Pro feature, so it stays on the shelf until unlocked.
+    private var locked: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("Orrery Pro", systemImage: "lock")
+                .font(.callout)
+            Text("Unlock widgets in the Orrery app.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(.fill.tertiary, for: .widget)
