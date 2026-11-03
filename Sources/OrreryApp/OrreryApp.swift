@@ -32,6 +32,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
     }
+
+    /// Finder double-click on a `.orreryboard` file reaches the app through here.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where url.pathExtension == BoardDocument.fileExtension {
+            NotificationCenter.default.post(name: .openBoardDocument, object: url)
+        }
+    }
+}
+
+extension Notification.Name {
+    static let openBoardDocument = Notification.Name("OrreryOpenBoardDocument")
 }
 
 struct MenuBarLabel: View {
@@ -60,6 +71,10 @@ struct TimerCommands: Commands {
         CommandGroup(replacing: .appTermination) {
             Button("Quit Orrery") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
+        }
+        CommandGroup(replacing: .importExport) {
+            Button("Export Board…") { controller.exportBoard() }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
         }
     }
 }

@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 import OrreryCore
@@ -12,12 +13,13 @@ final class BoardController: ObservableObject {
     @Published private(set) var focus: TimerFocus
     @Published private(set) var now: Date = .now
     private var changeObserver: StoreChangeSignal.Observation?
+    private var openObserver: NSObjectProtocol?
 
     init(store: TimerStore = TimerStore(), boardStore: BoardStore? = try? BoardStore()) {
         self.store = store
         self.boardStore = boardStore
         // Restore the shared store so the app opens with what the widget was showing.
-        if let boardStore, let board = try? boardStore.boards().first {
+        if let boardStore, let board = try? boardStore.currentBoard() {
             for timer in board.liveTimers where store.timer(id: timer.id) == nil {
                 store.add(timer)
             }
@@ -25,6 +27,14 @@ final class BoardController: ObservableObject {
         self.focus = TimerFocus(selectedID: store.timers.first?.id)
         self.changeObserver = StoreChangeSignal.observe { [weak self] in
             Task { @MainActor in self?.reloadFromStore() }
+        }
+        self.openObserver = NotificationCenter.default.addObserver(
+            forName: .openBoardDocument,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let url = notification.object as? URL else { return }
+            Task { @MainActor in self?.importBoard(from: url) }
         }
     }
 
@@ -72,10 +82,36 @@ final class BoardController: ObservableObject {
 
     /// Re-reads snapshots written by the widget, so its start/pause is not clobbered by the next save.
     private func reloadFromStore() {
-        guard let boardStore, let board = try? boardStore.boards().first else { return }
+        guard let boardStore, let board = try? boardStore.currentBoard() else { return }
         store.merge(board.liveTimers)
         focus.move(by: 0, through: timers.map(\.id))
         now = .now
+    }
+
+    /// Loads a `.orreryboard` file as a new idle board and makes it the one on screen.
+    func importBoard(from url: URL) {
+        guard let boardStore,
+              let data = try? Data(contentsOf: url),
+              let board = try? boardStore.importBoard(from: data) else { return }
+        store.replace(with: board.liveTimers)
+        focus = TimerFocus(selectedID: store.timers.first?.id)
+        now = .now
+        StoreChangeSignal.post()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Asks where to save the current board and writes it as a `.orreryboard` file.
+    func exportBoard() {
+        guard let boardStore, let board = try? boardStore.currentBoard() else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [BoardDocument.contentType]
+        panel.nameFieldStringValue = "\(board.name).\(BoardDocument.fileExtension)"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try boardStore.exportData(for: board).write(to: url)
+        } catch {
+            NSAlert(error: error).runModal()
+        }
     }
 
     /// Writes the countdown timers to the shared store, then tells the widget to re-read it.
@@ -84,7 +120,7 @@ final class BoardController: ObservableObject {
         guard let boardStore else { return }
         do {
             let board: Board
-            if let existing = try boardStore.boards().first {
+            if let existing = try boardStore.currentBoard() {
                 board = existing
             } else {
                 board = try boardStore.createBoard(named: "Orrery")

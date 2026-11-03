@@ -59,17 +59,7 @@ extension BoardStore {
     /// Applies `preset` as a new Board whose timers are all idle and ready to run.
     @discardableResult
     public func createBoard(from preset: Preset, named name: String? = nil) throws -> Board {
-        let board = Board(name: name ?? preset.name)
-        context.insert(board)
-        for phase in preset.phases {
-            board.addPhase(named: phase)
-        }
-        for template in preset.timers {
-            let timer = CountdownTimer(name: template.name, duration: template.duration, type: template.type)
-            board.record(timer)
-        }
-        try save()
-        return board
+        try createBoard(named: name ?? preset.name, phases: preset.phases, timers: preset.timers)
     }
 
     public func delete(_ preset: Preset) throws {

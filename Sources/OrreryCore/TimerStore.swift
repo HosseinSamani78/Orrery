@@ -45,6 +45,11 @@ public final class TimerStore {
         }
     }
 
+    /// Replaces every timer with a fresh set, as when another board is opened.
+    public func replace(with timers: [any TimerModel]) {
+        self.timers = timers
+    }
+
     /// Drives every timer to `now`; appends a History entry for each run that just completed.
     @discardableResult
     public func update(at now: Date) -> [HistoryEntry] {

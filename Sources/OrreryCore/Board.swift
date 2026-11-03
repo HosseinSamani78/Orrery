@@ -143,10 +143,29 @@ public final class BoardStore {
         try context.fetch(FetchDescriptor<Board>(sortBy: [SortDescriptor(\.createdAt)]))
     }
 
+    /// The board the app and widget show: the most recently created one, so an imported board
+    /// becomes the working board without a board picker.
+    public func currentBoard() throws -> Board? {
+        try boards().last
+    }
+
     @discardableResult
     public func createBoard(named name: String) throws -> Board {
+        try createBoard(named: name, phases: [], timers: [])
+    }
+
+    /// Creates a Board whose phases are in order and whose timers are idle and ready to run.
+    @discardableResult
+    func createBoard(named name: String, phases: [String], timers: [PresetTimer]) throws -> Board {
         let board = Board(name: name)
         context.insert(board)
+        for phase in phases {
+            board.addPhase(named: phase)
+        }
+        for template in timers {
+            let timer = CountdownTimer(name: template.name, duration: template.duration, type: template.type)
+            board.record(timer)
+        }
         try save()
         return board
     }
@@ -160,7 +179,7 @@ public final class BoardStore {
     /// status, or `nil` when the board has no timer with this id. Shared by widget intents.
     @discardableResult
     public func toggleTimer(id: UUID, at now: Date = .now) throws -> TimerStatus? {
-        guard let board = try boards().first,
+        guard let board = try currentBoard(),
               let record = board.timers.first(where: { $0.timerID == id }) else { return nil }
         let timer = record.timer
         _ = timer.update(at: now)
