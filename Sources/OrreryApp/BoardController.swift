@@ -14,6 +14,7 @@ final class BoardController: ObservableObject {
     @Published private(set) var now: Date = .now
     private var changeObserver: StoreChangeSignal.Observation?
     private var openObserver: NSObjectProtocol?
+    private var sharePicker: NSSharingServicePicker?
 
     init(store: TimerStore = TimerStore(), boardStore: BoardStore? = try? BoardStore()) {
         self.store = store
@@ -88,16 +89,68 @@ final class BoardController: ObservableObject {
         now = .now
     }
 
-    /// Loads a `.orreryboard` file as a new idle board and makes it the one on screen.
+    /// Loads a shared Board — a `.orreryboard` file or an `orrery://import` link — as a new idle
+    /// board and makes it the one on screen.
     func importBoard(from url: URL) {
-        guard let boardStore,
-              let data = try? Data(contentsOf: url),
-              let board = try? boardStore.importBoard(from: data) else { return }
+        guard let boardStore else { return }
+        let imported: Board?
+        if url.scheme == BoardDocument.shareScheme {
+            imported = (try? BoardDocument(shareURL: url))
+                .flatMap { try? boardStore.importBoard(from: $0) }
+        } else {
+            imported = (try? Data(contentsOf: url))
+                .flatMap { try? boardStore.importBoard(from: $0) }
+        }
+        guard let board = imported else { return }
         store.replace(with: board.liveTimers)
         focus = TimerFocus(selectedID: store.timers.first?.id)
         now = .now
         StoreChangeSignal.post()
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Presents the native share sheet (AirDrop, Mail, Messages, Notes) for the current board.
+    func shareBoard() {
+        guard let board = currentBoard(),
+              let data = try? JSONEncoder().encode(BoardDocument(board: board)),
+              let anchor = NSApp.keyWindow?.contentView else { return }
+        let name = board.name.replacingOccurrences(of: "/", with: "-")
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: "\(name).\(BoardDocument.fileExtension)")
+        do {
+            try data.write(to: url)
+        } catch {
+            NSAlert(error: error).runModal()
+            return
+        }
+        sharePicker = NSSharingServicePicker(items: [url])
+        sharePicker?.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
+    }
+
+    /// The current board as a QR code, or `nil` when there is no board or it is too large for one.
+    func qrCodeImage() -> NSImage? {
+        guard let board = currentBoard(),
+              let png = try? BoardDocument(board: board).qrPNGData() else { return nil }
+        return NSImage(data: png)
+    }
+
+    func saveQRCode() {
+        guard let board = currentBoard(),
+              let png = try? BoardDocument(board: board).qrPNGData() else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.png]
+        panel.nameFieldStringValue = "\(board.name).png"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try png.write(to: url)
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    private func currentBoard() -> Board? {
+        guard let boardStore else { return nil }
+        return try? boardStore.currentBoard()
     }
 
     /// Asks where to save the current board and writes it as a `.orreryboard` file.

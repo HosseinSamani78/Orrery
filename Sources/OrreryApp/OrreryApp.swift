@@ -20,6 +20,11 @@ struct OrreryApp: App {
         }
         .defaultSize(width: 380, height: 440)
         .commands { TimerCommands(controller: controller) }
+
+        Window("Board QR Code", id: BoardQRWindow.id) {
+            BoardQRView(controller: controller)
+        }
+        .defaultSize(width: 300, height: 340)
     }
 }
 
@@ -33,9 +38,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
     }
 
-    /// Finder double-click on a `.orreryboard` file reaches the app through here.
+    /// Finder double-click on a `.orreryboard` file, or an `orrery://import` link, reaches the
+    /// app through here.
     func application(_ application: NSApplication, open urls: [URL]) {
-        for url in urls where url.pathExtension == BoardDocument.fileExtension {
+        for url in urls {
+            guard url.pathExtension == BoardDocument.fileExtension
+                    || url.scheme == BoardDocument.shareScheme else { continue }
             NotificationCenter.default.post(name: .openBoardDocument, object: url)
         }
     }
@@ -58,6 +66,7 @@ struct MenuBarLabel: View {
 /// keyboard all drive timers through the same `TimerAction` path.
 struct TimerCommands: Commands {
     let controller: BoardController
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
         CommandMenu("Timer") {
@@ -75,6 +84,12 @@ struct TimerCommands: Commands {
         CommandGroup(replacing: .importExport) {
             Button("Export Board…") { controller.exportBoard() }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
+            Button("Share Board…") { controller.shareBoard() }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+            Button("Show QR Code") {
+                openWindow(id: BoardQRWindow.id)
+                NSApp.activate(ignoringOtherApps: true)
+            }
         }
     }
 }
