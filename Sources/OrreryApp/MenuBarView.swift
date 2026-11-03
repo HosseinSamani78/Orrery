@@ -1,0 +1,64 @@
+import SwiftUI
+import OrreryCore
+
+struct MenuBarView: View {
+    @ObservedObject var controller: BoardController
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if controller.timers.isEmpty {
+                Text("No timers")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(controller.timers, id: \.id) { timer in
+                    HStack(spacing: 8) {
+                        Image(systemName: timer.symbolName)
+                            .frame(width: 16)
+                        Text(timer.name)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(clockText(for: timer, at: controller.now))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                        Button {
+                            controller.select(timer.id)
+                            controller.perform(timer.status.action)
+                        } label: {
+                            Image(systemName: timer.status.actionSymbol)
+                        }
+                        .buttonStyle(.borderless)
+                        .help(timer.status.action.menuTitle)
+                        .accessibilityLabel("\(timer.status.actionLabel) \(timer.name)")
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { controller.select(timer.id) }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(spokenDescription(for: timer, at: controller.now))
+                }
+            }
+
+            Divider()
+
+            Button("Quick Start") { controller.perform(.quickStart) }
+                .keyboardShortcut("n")
+            Button("Open Orrery") {
+                openWindow(id: BoardWindow.id)
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            .keyboardShortcut("o")
+            if controller.pro.tier == .free {
+                Button("Unlock Orrery Pro…") { controller.upgradeReason = .manual }
+            }
+            Divider()
+            Button("Quit Orrery") { NSApp.terminate(nil) }
+                .keyboardShortcut("q")
+        }
+        .padding(12)
+        .frame(width: 280)
+        .orreryGlass(cornerRadius: 20)
+        .sheet(item: $controller.upgradeReason) { reason in
+            UpgradeView(pro: controller.pro, reason: reason)
+        }
+    }
+}
