@@ -33,6 +33,18 @@ public final class TimerStore {
         timers.removeAll { $0.id == id }
     }
 
+    /// Replaces timers this store already holds with fresh snapshots from another process,
+    /// and appends new ones without dropping timer types that are not persisted yet.
+    public func merge(_ updates: [any TimerModel]) {
+        for timer in updates {
+            if let index = timers.firstIndex(where: { $0.id == timer.id }) {
+                timers[index] = timer
+            } else {
+                timers.append(timer)
+            }
+        }
+    }
+
     /// Drives every timer to `now`; appends a History entry for each run that just completed.
     @discardableResult
     public func update(at now: Date) -> [HistoryEntry] {

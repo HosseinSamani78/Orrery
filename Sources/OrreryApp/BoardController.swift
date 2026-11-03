@@ -11,6 +11,7 @@ final class BoardController: ObservableObject {
     private let boardStore: BoardStore?
     @Published private(set) var focus: TimerFocus
     @Published private(set) var now: Date = .now
+    private var changeObserver: StoreChangeSignal.Observation?
 
     init(store: TimerStore = TimerStore(), boardStore: BoardStore? = try? BoardStore()) {
         self.store = store
@@ -22,6 +23,9 @@ final class BoardController: ObservableObject {
             }
         }
         self.focus = TimerFocus(selectedID: store.timers.first?.id)
+        self.changeObserver = StoreChangeSignal.observe { [weak self] in
+            Task { @MainActor in self?.reloadFromStore() }
+        }
     }
 
     var timers: [any TimerModel] { store.timers }
@@ -64,6 +68,14 @@ final class BoardController: ObservableObject {
             persist()
         }
         return performed
+    }
+
+    /// Re-reads snapshots written by the widget, so its start/pause is not clobbered by the next save.
+    private func reloadFromStore() {
+        guard let boardStore, let board = try? boardStore.boards().first else { return }
+        store.merge(board.liveTimers)
+        focus.move(by: 0, through: timers.map(\.id))
+        now = .now
     }
 
     /// Writes the countdown timers to the shared store, then tells the widget to re-read it.

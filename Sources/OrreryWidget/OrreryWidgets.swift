@@ -61,6 +61,12 @@ struct OrreryWidgetView: View {
                         clock(timer)
                             .monospacedDigit()
                             .foregroundStyle(timer.status == .completed ? .secondary : .primary)
+                        Button(intent: ToggleTimerIntent(timerID: timer.id)) {
+                            Image(systemName: timer.status == .running ? "pause.fill" : "play.fill")
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(timer.status == .completed)
+                        .accessibilityLabel(timer.status == .running ? "Pause \(timer.name)" : "Start \(timer.name)")
                     }
                     .font(.callout)
                 }

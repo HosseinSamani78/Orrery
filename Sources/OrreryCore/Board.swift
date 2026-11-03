@@ -156,6 +156,20 @@ public final class BoardStore {
         try save()
     }
 
+    /// Starts or pauses one persisted timer, settling a passed deadline first. Returns its new
+    /// status, or `nil` when the board has no timer with this id. Shared by widget intents.
+    @discardableResult
+    public func toggleTimer(id: UUID, at now: Date = .now) throws -> TimerStatus? {
+        guard let board = try boards().first,
+              let record = board.timers.first(where: { $0.timerID == id }) else { return nil }
+        let timer = record.timer
+        _ = timer.update(at: now)
+        _ = TimerStore(timers: [timer]).perform(.toggle, on: id, at: now)
+        record.update(from: timer)
+        try save()
+        return timer.status
+    }
+
     public func save() throws {
         try context.save()
     }

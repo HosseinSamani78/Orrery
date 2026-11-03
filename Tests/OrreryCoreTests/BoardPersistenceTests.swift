@@ -56,6 +56,40 @@ final class BoardPersistenceTests: XCTestCase {
         XCTAssertEqual(board.liveTimers.first?.remaining(at: t0.addingTimeInterval(10_000)), 200)
     }
 
+    func testTogglingAPersistedTimerStartsThenPausesIt() throws {
+        let store = try BoardStore(isStoredInMemoryOnly: true)
+        let board = try store.createBoard(named: "Kitchen")
+        let timer = CountdownTimer(duration: 300)
+        board.record(timer)
+        try store.save()
+
+        XCTAssertEqual(try store.toggleTimer(id: timer.id, at: t0), .running)
+        XCTAssertEqual(
+            try store.toggleTimer(id: timer.id, at: t0.addingTimeInterval(100)),
+            .paused
+        )
+        XCTAssertEqual(
+            try XCTUnwrap(board.liveTimers.first).remaining(at: t0.addingTimeInterval(10_000)),
+            200,
+            accuracy: 0.001
+        )
+        XCTAssertNil(try store.toggleTimer(id: UUID(), at: t0))
+    }
+
+    func testTogglingATimerWhoseDeadlinePassedLeavesItCompleted() throws {
+        let store = try BoardStore(isStoredInMemoryOnly: true)
+        let board = try store.createBoard(named: "Kitchen")
+        let timer = CountdownTimer(duration: 60)
+        board.record(timer)
+        try store.save()
+
+        XCTAssertEqual(try store.toggleTimer(id: timer.id, at: t0), .running)
+        XCTAssertEqual(
+            try store.toggleTimer(id: timer.id, at: t0.addingTimeInterval(120)),
+            .completed
+        )
+    }
+
     func testDeletingABoardRemovesItFromTheStore() throws {
         let store = try BoardStore(isStoredInMemoryOnly: true)
         let board = try store.createBoard(named: "Kitchen")
