@@ -14,6 +14,7 @@ struct BoardQRView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 240, height: 240)
+                    .accessibilityLabel("QR code for the current board")
                 Button("Save QR Code…") { controller.saveQRCode() }
             } else {
                 ContentUnavailableView {

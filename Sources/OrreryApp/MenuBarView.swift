@@ -29,9 +29,12 @@ struct MenuBarView: View {
                         }
                         .buttonStyle(.borderless)
                         .help(timer.status.action.menuTitle)
+                        .accessibilityLabel("\(timer.status.actionLabel) \(timer.name)")
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { controller.select(timer.id) }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(spokenDescription(for: timer, at: controller.now))
                 }
             }
 
@@ -53,6 +56,7 @@ struct MenuBarView: View {
         }
         .padding(12)
         .frame(width: 280)
+        .orreryGlass(cornerRadius: 20)
         .sheet(item: $controller.upgradeReason) { reason in
             UpgradeView(pro: controller.pro, reason: reason)
         }

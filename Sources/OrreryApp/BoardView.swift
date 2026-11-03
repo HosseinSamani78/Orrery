@@ -89,8 +89,13 @@ private struct TimerRow: View {
             }
             .buttonStyle(.borderless)
             .help(timer.status.action.menuTitle)
+            .accessibilityLabel("\(timer.status.actionLabel) \(timer.name)")
         }
         .padding(.vertical, 4)
+        // One VoiceOver stop per row; the row's button becomes a named action on it.
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(spokenDescription(for: timer, at: now))
+        .accessibilityAddTraits(focused ? .isSelected : [])
     }
 }
 
@@ -114,5 +119,7 @@ private struct RingBadge: View {
                 .foregroundStyle(.secondary)
         }
         .frame(width: 28, height: 28)
+        // Decorative: the row's spoken description already carries the time.
+        .accessibilityHidden(true)
     }
 }

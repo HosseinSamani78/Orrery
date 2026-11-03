@@ -16,13 +16,13 @@ func clockText(for timer: any TimerModel, at now: Date) -> String {
 }
 
 private func clockText(_ seconds: TimeInterval, roundingUp: Bool = false) -> String {
-    let total = Int(roundingUp ? seconds.rounded(.up) : seconds.rounded(.down))
-    let hours = total / 3600
-    let minutes = total % 3600 / 60
-    let remaining = total % 60
-    return hours > 0
-        ? String(format: "%d:%02d:%02d", hours, minutes, remaining)
-        : String(format: "%d:%02d", minutes, remaining)
+    ClockText.format(seconds, roundingUp: roundingUp)
+}
+
+/// What VoiceOver reads for a timer row: name, state, then the clock, so the visual layout
+/// does not have to be mirrored in separate labels.
+func spokenDescription(for timer: any TimerModel, at now: Date) -> String {
+    "\(timer.name), \(timer.status.label), \(clockText(for: timer, at: now))"
 }
 
 extension TimerModel {
@@ -47,6 +47,16 @@ extension TimerStatus {
         case .idle, .paused: .toggle
         case .running: .pause
         case .completed: .reset
+        }
+    }
+
+    /// What VoiceOver reads for the lifecycle button, whose SF Symbol carries no text.
+    var actionLabel: String {
+        switch self {
+        case .idle: "Start"
+        case .running: "Pause"
+        case .paused: "Resume"
+        case .completed: "Reset"
         }
     }
 }

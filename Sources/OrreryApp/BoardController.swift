@@ -19,6 +19,8 @@ final class BoardController: ObservableObject {
     private var openObserver: NSObjectProtocol?
     private var tierObserver: AnyCancellable?
     private var sharePicker: NSSharingServicePicker?
+    private let notifier = CompletionNotifier()
+    private var tickTask: Task<Void, Never>?
 
     init(
         store: TimerStore = TimerStore(),
@@ -43,6 +45,15 @@ final class BoardController: ObservableObject {
             WidgetCenter.shared.reloadAllTimelines()
         }
         Task { await pro.load() }
+        notifier.requestAuthorization()
+        // One tick drives every timer, so completions surface even when no window is open.
+        tickTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard let self else { return }
+                self.advance(to: .now)
+            }
+        }
         self.openObserver = NotificationCenter.default.addObserver(
             forName: .openBoardDocument,
             object: nil,
@@ -61,6 +72,7 @@ final class BoardController: ObservableObject {
         let completed = store.update(at: date)
         now = date
         if !completed.isEmpty {
+            notifier.announce(completed)
             persist()
         }
     }
