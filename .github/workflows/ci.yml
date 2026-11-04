@@ -1,0 +1,14 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    # macOS 26 is the first runner whose SDK has glassEffect; the app targets 14 but builds here.
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      # swift test only builds the test target's dependencies, so build every target first.
+      - run: swift build
+      - run: swift test
