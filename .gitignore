@@ -1,3 +1,5 @@
 .build/
 .swiftpm/
 .DS_Store
+graphify-out/
+.codebase-memory/
