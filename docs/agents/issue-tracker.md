@@ -11,6 +11,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Comment on an issue**: `gh issue comment <number> --body "$(</tmp/body.md)"`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "$(</tmp/body.md)"`
+- **Numbers are shared**: issues and pull requests draw from one sequence, and `gh issue list` hides PRs, so a number missing from the issue list may be a pull request — check `gh pr list` before reporting it missing. Write "PR 24", not "#24", when you mean the pull request.
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 

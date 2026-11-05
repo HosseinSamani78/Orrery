@@ -1,6 +1,6 @@
 # Glossary
 
-- **Board**: a named collection of timers, optionally organized into phases.
+- **Board**: a named collection of timers, optionally organized into phases. The app and widget show one Board at a time — the most recently created one — while the store keeps every saved Board.
 - **Timer**: a single running/paused/completed timing instance of a given timer type.
 - **Timer type**: one of the six v1 types — countdown, quick start, count up, Pomodoro, interval, stopwatch.
 - **Run**: one execution of a timer from start to completion/reset.
